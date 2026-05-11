@@ -8,7 +8,8 @@
     "build": "npm run index && next build",
     "start": "next start",
     "lint": "next lint",
-    "index": "node scripts/build-index.mjs"
+    "index": "node scripts/build-index.mjs",
+    "precompute": "npm run index && node scripts/precompute-suggested.mjs"
   },
   "dependencies": {
     "@types/node": "^20.12.12",

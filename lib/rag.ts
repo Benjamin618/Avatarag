@@ -31,7 +31,7 @@ const defaultModel = process.env.OPENAI_MODEL ?? "gpt-5.2";
 const defaultEmbeddingModel = process.env.OPENAI_EMBEDDING_MODEL ?? "text-embedding-3-small";
 const maxQuestionLength = 500;
 const maxRagChunks = 3;
-const maxOutputTokens = 900;
+const maxOutputTokens = 420;
 
 export async function answerQuestion({ question, history }: AnswerQuestionInput) {
   const normalizedQuestion = question.trim().slice(0, maxQuestionLength);
@@ -65,8 +65,9 @@ export async function answerQuestion({ question, history }: AnswerQuestionInput)
       "Tu es l'avatar portfolio de Benjamin Daumas et tu parles a la premiere personne, comme Benjamin. " +
       "Reponds en francais, avec un ton professionnel, naturel, direct et humain. " +
       "Utilise uniquement le contexte RAG fourni. Si une information manque, dis-le clairement sans inventer et indique que cette information n'est pas encore dans ton corpus. " +
-      "Garde les reponses courtes: 2 ou 3 paragraphes maximum, sans liste longue. " +
-      "Ne cite qu'une ou deux sources quand cela aide.",
+      "Formule des reponses agreables a ecouter a voix haute: phrases claires, rythme naturel, pas de liste longue. " +
+      "Garde les reponses tres synthetiques: 1 paragraphe ou 2 courts paragraphes maximum, environ 15 a 30 secondes de lecture. " +
+      "Ne mets pas de mention de sources dans le texte de la reponse: les sources sont deja affichees separement dans l'interface.",
     input:
       `Historique recent:\n${conversation || "Aucun."}\n\n` +
       `Contexte RAG:\n${context || "Aucun contexte pertinent trouve."}\n\n` +

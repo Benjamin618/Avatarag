@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import type { AvatarState } from "@/components/avatar-stage";
 
 type Source = {
   id: string;
@@ -13,22 +14,55 @@ type Message = {
   role: "user" | "assistant";
   content: string;
   sources?: Source[];
-  mode?: "demo" | "openai";
+  mode?: "demo" | "openai" | "precomputed";
+};
+
+type ChatExperienceProps = {
+  suggestedQuestions: string[];
+  onAvatarStateChange?: (state: AvatarState) => void;
+};
+
+type PrecomputedAnswer = {
+  question: string;
+  answer: string;
+  audioUrl: string;
+  sources: Source[];
+};
+
+type PrecomputedPayload = {
+  answers: PrecomputedAnswer[];
 };
 
 const maxQuestionsPerSession = 8;
 const maxQuestionLength = 500;
 
-export function ChatExperience({ suggestedQuestions }: { suggestedQuestions: string[] }) {
+function toSpeechText(content: string) {
+  return content
+    .replace(/\((?:sources?|voir source|source)\s*:[^)]+\)/gi, "")
+    .replace(/\((?:sources?|source)\s+\d+(?:\s*,\s*(?:sources?|source)?\s*\d+)*\)/gi, "")
+    .replace(/(?:sources?|source)\s*:\s*[^.\n]+[.\n]?/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+export function ChatExperience({ suggestedQuestions, onAvatarStateChange }: ChatExperienceProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
       content:
-        "Bonjour, je suis l'avatar de Benjamin. Je peux vous parler de mon parcours, de mes projets, de mes competences et de ma transition vers la Data Science."
+        "Bonjour, je suis l'avatar de Benjamin. Choisissez une question: je repondrai a partir de son CV, de ses projets et de son corpus portfolio."
     }
   ]);
   const [draft, setDraft] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [speakingIndex, setSpeakingIndex] = useState<number | null>(null);
+  const [preparingAudioIndex, setPreparingAudioIndex] = useState<number | null>(null);
+  const [audioCache, setAudioCache] = useState<{ index: number; url: string; revoke: boolean } | null>(
+    null
+  );
+  const [precomputedAnswers, setPrecomputedAnswers] = useState<Record<string, PrecomputedAnswer>>({});
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const pendingRef = useRef(false);
 
   const history = useMemo(
     () => messages.map(({ role, content }) => ({ role, content })).slice(-8),
@@ -36,10 +70,190 @@ export function ChatExperience({ suggestedQuestions }: { suggestedQuestions: str
   );
   const askedQuestions = messages.filter((message) => message.role === "user").length;
   const hasReachedQuestionLimit = askedQuestions >= maxQuestionsPerSession;
+  const latestAssistantIndex = useMemo(() => {
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      if (messages[index].role === "assistant" && index > 0) {
+        return index;
+      }
+    }
+    return null;
+  }, [messages]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadPrecomputedAnswers() {
+      try {
+        const response = await fetch("/precomputed/suggested.json", { cache: "no-store" });
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = (await response.json()) as PrecomputedPayload;
+        if (isCancelled || !Array.isArray(payload.answers)) {
+          return;
+        }
+
+        setPrecomputedAnswers(
+          Object.fromEntries(payload.answers.map((answer) => [answer.question, answer]))
+        );
+      } catch {
+        // Precomputed answers are optional; dynamic RAG remains the fallback.
+      }
+    }
+
+    void loadPrecomputedAnswers();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (latestAssistantIndex === null) {
+      return undefined;
+    }
+
+    const latestMessage = messages[latestAssistantIndex];
+    if (latestMessage.mode !== "openai") {
+      return undefined;
+    }
+
+    const preloadIndex = latestAssistantIndex;
+    let isCancelled = false;
+    setPreparingAudioIndex(preloadIndex);
+    setAudioCache((current) => {
+      if (current?.revoke) {
+        URL.revokeObjectURL(current.url);
+      }
+      return null;
+    });
+
+    async function preloadSpeech() {
+      try {
+        const response = await fetch("/api/speech", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: toSpeechText(latestMessage.content) })
+        });
+
+        if (!response.ok) {
+          throw new Error("Audio indisponible");
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        if (isCancelled) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+
+        setAudioCache({ index: preloadIndex, url, revoke: true });
+      } catch {
+        if (!isCancelled) {
+          setAudioCache(null);
+        }
+      } finally {
+        if (!isCancelled) {
+          setPreparingAudioIndex(null);
+        }
+      }
+    }
+
+    void preloadSpeech();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [latestAssistantIndex, messages]);
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      if (audioCache) {
+        if (audioCache.revoke) {
+          URL.revokeObjectURL(audioCache.url);
+        }
+      }
+    };
+  }, [audioCache]);
+
+  function setAvatarState(state: AvatarState) {
+    onAvatarStateChange?.(state);
+  }
+
+  function stopSpeech() {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setSpeakingIndex(null);
+    setAvatarState("idle");
+  }
+
+  async function speak(content: string, index: number) {
+    if (speakingIndex === index) {
+      stopSpeech();
+      return;
+    }
+
+    stopSpeech();
+    setSpeakingIndex(index);
+    setAvatarState("speaking");
+
+    try {
+      let url = audioCache?.index === index ? audioCache.url : null;
+      let shouldRevokeUrl = false;
+      if (!url) {
+        setPreparingAudioIndex(index);
+        const response = await fetch("/api/speech", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: toSpeechText(content) })
+        });
+
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.error ?? "Audio indisponible");
+        }
+
+        const blob = await response.blob();
+        url = URL.createObjectURL(blob);
+        shouldRevokeUrl = true;
+      }
+
+      const audio = new Audio(url);
+      audio.playbackRate = 1.08;
+      audioRef.current = audio;
+      audio.onended = () => {
+        if (shouldRevokeUrl) {
+          URL.revokeObjectURL(url);
+        }
+        setSpeakingIndex(null);
+        setAvatarState("idle");
+      };
+      audio.onerror = () => {
+        if (shouldRevokeUrl) {
+          URL.revokeObjectURL(url);
+        }
+        setSpeakingIndex(null);
+        setAvatarState("error");
+      };
+      await audio.play();
+    } catch {
+      setSpeakingIndex(null);
+      setAvatarState("error");
+    } finally {
+      setPreparingAudioIndex(null);
+    }
+  }
 
   async function ask(question: string) {
     const message = question.trim().slice(0, maxQuestionLength);
-    if (!message || isLoading) {
+    if (!message || isLoading || pendingRef.current) {
       return;
     }
 
@@ -55,8 +269,35 @@ export function ChatExperience({ suggestedQuestions }: { suggestedQuestions: str
       return;
     }
 
+    const precomputedAnswer = precomputedAnswers[message];
+    if (precomputedAnswer) {
+      const assistantIndex = messages.length + 1;
+      setDraft("");
+      stopSpeech();
+      setMessages((current) => [
+        ...current,
+        { role: "user", content: message },
+        {
+          role: "assistant",
+          content: precomputedAnswer.answer,
+          sources: precomputedAnswer.sources,
+          mode: "precomputed"
+        }
+      ]);
+      setAudioCache((current) => {
+        if (current?.revoke) {
+          URL.revokeObjectURL(current.url);
+        }
+        return { index: assistantIndex, url: precomputedAnswer.audioUrl, revoke: false };
+      });
+      return;
+    }
+
     setDraft("");
     setIsLoading(true);
+    pendingRef.current = true;
+    stopSpeech();
+    setAvatarState("thinking");
     setMessages((current) => [...current, { role: "user", content: message }]);
 
     try {
@@ -80,6 +321,7 @@ export function ChatExperience({ suggestedQuestions }: { suggestedQuestions: str
           mode: payload.mode
         }
       ]);
+      setAvatarState("idle");
     } catch (error) {
       setMessages((current) => [
         ...current,
@@ -91,8 +333,10 @@ export function ChatExperience({ suggestedQuestions }: { suggestedQuestions: str
               : "Je n'arrive pas a repondre pour le moment."
         }
       ]);
+      setAvatarState("error");
     } finally {
       setIsLoading(false);
+      pendingRef.current = false;
     }
   }
 
@@ -105,10 +349,12 @@ export function ChatExperience({ suggestedQuestions }: { suggestedQuestions: str
     <section className="chatPanel" aria-label="Conversation avec l'avatar">
       <header className="chatHeader">
         <div>
-          <p className="eyebrow">Entretien rapide</p>
-          <h2>Posez une question</h2>
+          <p className="eyebrow">Entretien express</p>
+          <h2>Choisissez une question</h2>
         </div>
-        <span className="status">RAG + OpenAI · {maxQuestionsPerSession - askedQuestions} restantes</span>
+        <span className="status">
+          RAG + OpenAI + voix IA - {maxQuestionsPerSession - askedQuestions} restantes
+        </span>
       </header>
 
       <div className="suggestions">
@@ -129,13 +375,17 @@ export function ChatExperience({ suggestedQuestions }: { suggestedQuestions: str
           <article className={`message ${message.role}`} key={`${message.role}-${index}`}>
             {message.role === "assistant" && message.mode ? (
               <span className="answerMode">
-                {message.mode === "openai" ? "Reponse generee avec RAG" : "Mode demo"}
+                {message.mode === "openai"
+                  ? "Reponse generee avec RAG"
+                  : message.mode === "precomputed"
+                    ? "Reponse preparee"
+                    : "Mode demo"}
               </span>
             ) : null}
             <p>{message.content}</p>
             {message.sources?.length ? (
               <details className="sources">
-                <summary>Sources consultées</summary>
+                <summary>Sources consultees</summary>
                 <ul className="sourceList">
                   {message.sources.map((source) => (
                     <li className="sourceItem" key={source.id}>
@@ -146,6 +396,20 @@ export function ChatExperience({ suggestedQuestions }: { suggestedQuestions: str
                   ))}
                 </ul>
               </details>
+            ) : null}
+            {message.role === "assistant" && index > 0 ? (
+              <button
+                className="voiceButton"
+                type="button"
+                onClick={() => void speak(message.content, index)}
+                disabled={isLoading || (preparingAudioIndex === index && audioCache?.index !== index)}
+              >
+                {speakingIndex === index
+                  ? "Stop"
+                  : preparingAudioIndex === index
+                    ? "Preparation audio..."
+                    : "Ecouter"}
+              </button>
             ) : null}
           </article>
         ))}
@@ -164,6 +428,7 @@ export function ChatExperience({ suggestedQuestions }: { suggestedQuestions: str
           Envoyer
         </button>
       </form>
+      <p className="voiceDisclosure">La voix est generee par IA uniquement quand vous cliquez.</p>
     </section>
   );
 }

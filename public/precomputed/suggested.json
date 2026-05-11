@@ -1,0 +1,111 @@
+{
+  "generatedAt": "2026-05-11T15:30:37.834Z",
+  "models": {
+    "chat": "gpt-5.2",
+    "embedding": "text-embedding-3-small",
+    "speech": "gpt-4o-mini-tts",
+    "voice": "verse"
+  },
+  "answers": [
+    {
+      "question": "Presente-toi en 30 secondes.",
+      "answer": "Je suis Benjamin Daumas. Mon profil est à l’interface entre l’IA, la donnée et les systèmes industriels réels : je ne me limite pas aux modèles, j’apporte aussi une expérience solide d’ingénierie, de production, de relation client et de leadership technique. Mon objectif, c’est d’aider une équipe à transformer des cas d’usage IA en solutions réalistes, robustes et compréhensibles par les métiers — et mon projet de portfolio, un avatar conversationnel basé sur RAG, illustre précisément cette approche. Je travaille en français (natif) et en anglais (courant).",
+      "audioUrl": "/precomputed/suggested-1.mp3",
+      "sources": [
+        {
+          "id": "faq-13",
+          "title": "Pourquoi te contacter pour un entretien ?",
+          "source": "content/faq.md",
+          "excerpt": "Il faut me contacter si vous cherchez un profil capable de relier IA, données et systèmes industriels réels.\n\nJe ne suis pas seulement en train d'apprendre des modèles : j'apporte aussi une expérience longue de l'ingénierie, de la production, de l'interface client et du leadershi"
+        },
+        {
+          "id": "projects-5",
+          "title": "Portfolio RAG Avatar",
+          "source": "content/projects.md",
+          "excerpt": "Ce projet de portfolio transforme le CV et les informations professionnelles de Benjamin en base de connaissance exploitable par un avatar conversationnel.\n\nIl démontre une capacité à construire une application web déployable avec Next.js, TypeScript, OpenAI, embeddings, retrieva"
+        },
+        {
+          "id": "cv-10",
+          "title": "Langues",
+          "source": "content/cv.md",
+          "excerpt": "- Français : langue maternelle\n- Anglais : courant"
+        }
+      ]
+    },
+    {
+      "question": "Quel type de poste recherches-tu ?",
+      "answer": "Je recherche un poste à l’intersection de la Data Science, de l’IA appliquée et des systèmes industriels. Mon historique est dans l’automobile embarquée, mais je suis ouvert à d’autres secteurs où la donnée et l’IA se confrontent à des systèmes complexes et réels : robotique, aéronautique, spatial, médical, défense ou industrie avancée, notamment autour de Toulouse.  \n\nLes intitulés peuvent être Data Scientist, AI Engineer, Machine Learning Engineer, Industrial AI Engineer ou un profil hybride data / systèmes. Ce qui m’intéresse surtout, ce sont des projets connectés au terrain : diagnostic, maintenance prédictive, qualité, analyse de données techniques, contrôle, perception ou outils IA pour équipes d’ingénierie.",
+      "audioUrl": "/precomputed/suggested-2.mp3",
+      "sources": [
+        {
+          "id": "faq-7",
+          "title": "Quel type de poste recherches-tu ?",
+          "source": "content/faq.md",
+          "excerpt": "Je recherche un poste à l'intersection de la Data Science, de l'IA appliquée et des systèmes industriels. Mon expérience historique est dans l'automobile embarqué, mais je suis ouvert à d'autres domaines où les systèmes complexes, la donnée et l'IA jouent un rôle important : robo"
+        },
+        {
+          "id": "goals-1",
+          "title": "Type de poste recherché",
+          "source": "content/goals.md",
+          "excerpt": "Benjamin recherche un poste à l'intersection de la Data Science, de l'IA appliquée et de l'industrie. Les intitulés pertinents peuvent inclure Data Scientist, AI Engineer, Machine Learning Engineer, Industrial AI Engineer, Data Scientist automotive ou profil hybride data / systèm"
+        },
+        {
+          "id": "faq-13",
+          "title": "Pourquoi te contacter pour un entretien ?",
+          "source": "content/faq.md",
+          "excerpt": "Il faut me contacter si vous cherchez un profil capable de relier IA, données et systèmes industriels réels.\n\nJe ne suis pas seulement en train d'apprendre des modèles : j'apporte aussi une expérience longue de l'ingénierie, de la production, de l'interface client et du leadershi"
+        }
+      ]
+    },
+    {
+      "question": "Quel projet IA montre le mieux tes competences ?",
+      "answer": "Le projet qui montre le mieux mes compétences, c’est mon capstone de Data Science appliquée à l’imagerie (détection COVID sur radios). J’y déroule une démarche complète et industrielle : exploration et préparation des données, gestion du déséquilibre de classes, entraînement ML et deep learning avec transfer learning, évaluation, analyse de robustesse et interprétabilité, puis déploiement via une application Streamlit. Il illustre surtout ma capacité à transformer un cas d’usage IA en solution concrète, robuste et compréhensible par les métiers.",
+      "audioUrl": "/precomputed/suggested-3.mp3",
+      "sources": [
+        {
+          "id": "faq-13",
+          "title": "Pourquoi te contacter pour un entretien ?",
+          "source": "content/faq.md",
+          "excerpt": "Il faut me contacter si vous cherchez un profil capable de relier IA, données et systèmes industriels réels.\n\nJe ne suis pas seulement en train d'apprendre des modèles : j'apporte aussi une expérience longue de l'ingénierie, de la production, de l'interface client et du leadershi"
+        },
+        {
+          "id": "capstone-covid-xray-13",
+          "title": "Ce que ce projet démontre",
+          "source": "content/capstone-covid-xray.md",
+          "excerpt": "Ce projet démontre ma capacité à conduire une démarche complète de Data Science appliquée à l'image : exploration de données, feature engineering, préparation du dataset, traitement du déséquilibre de classes, entraînement de modèles ML et deep learning, transfer learning, évalua"
+        },
+        {
+          "id": "goals-4",
+          "title": "Ce que Benjamin veut démontrer avec ce projet",
+          "source": "content/goals.md",
+          "excerpt": "Ce portfolio RAG Avatar montre que Benjamin sait transformer son CV en produit interactif, structurer un corpus, utiliser un LLM de manière contrôlée, construire une interface web et rendre son parcours plus accessible aux recruteurs.\n\nLe projet sert aussi de démonstrateur concre"
+        }
+      ]
+    },
+    {
+      "question": "Pourquoi te rencontrer en entretien ?",
+      "answer": "Il faut me rencontrer si vous cherchez quelqu’un qui sait relier l’IA, la donnée et les systèmes industriels réels. Je ne viens pas seulement avec des modèles ou des notebooks : j’ai plus de 20 ans d’expérience sur des systèmes automobiles complexes, avec des contraintes de production, qualité, intégration, sécurité fonctionnelle et interface client.  \n\nEn entretien, je peux vous montrer comment je transforme un cas d’usage IA en solution concrète, robuste et compréhensible par les métiers — avec le recul terrain nécessaire pour anticiper les limites des données, les risques et l’usage réel.",
+      "audioUrl": "/precomputed/suggested-4.mp3",
+      "sources": [
+        {
+          "id": "faq-13",
+          "title": "Pourquoi te contacter pour un entretien ?",
+          "source": "content/faq.md",
+          "excerpt": "Il faut me contacter si vous cherchez un profil capable de relier IA, données et systèmes industriels réels.\n\nJe ne suis pas seulement en train d'apprendre des modèles : j'apporte aussi une expérience longue de l'ingénierie, de la production, de l'interface client et du leadershi"
+        },
+        {
+          "id": "faq-4",
+          "title": "Pourquoi passes-tu de l'automobile embarqué à la Data Science ?",
+          "source": "content/faq.md",
+          "excerpt": "Pour moi, ce n'est pas une rupture mais une évolution naturelle. J'ai passé plus de 20 ans à travailler sur des systèmes automobiles complexes, avec du contrôle, du signal, du diagnostic, de la calibration, de la sécurité fonctionnelle et des contraintes de production.\n\nLa Data S"
+        },
+        {
+          "id": "faq-5",
+          "title": "Quelle est ta valeur ajoutée par rapport à un profil junior Data Scientist classique ?",
+          "source": "content/faq.md",
+          "excerpt": "Ma valeur ajoutée, c'est que je n'arrive pas avec uniquement une compétence modèle ou notebook. J'ai plus de 20 ans d'expérience dans des systèmes industriels complexes, avec des contraintes de production, de qualité, de sécurité fonctionnelle, d'intégration système et d'interfac"
+        }
+      ]
+    }
+  ]
+}
